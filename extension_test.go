@@ -24,7 +24,7 @@ import (
 	"strings"
 	"testing"
 
-	"crawshaw.io/sqlite"
+	"github.com/makenotion/sqlite"
 )
 
 const (

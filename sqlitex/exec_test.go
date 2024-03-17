@@ -19,8 +19,8 @@ import (
 	"reflect"
 	"testing"
 
-	"crawshaw.io/sqlite"
-	"crawshaw.io/sqlite/sqlitex"
+	"github.com/makenotion/sqlite"
+	"github.com/makenotion/sqlite/sqlitex"
 )
 
 func TestExec(t *testing.T) {

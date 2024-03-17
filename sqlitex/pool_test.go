@@ -24,8 +24,8 @@ import (
 	"testing"
 	"time"
 
-	"crawshaw.io/sqlite"
-	"crawshaw.io/sqlite/sqlitex"
+	"github.com/makenotion/sqlite"
+	"github.com/makenotion/sqlite/sqlitex"
 )
 
 const (
