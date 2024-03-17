@@ -52,6 +52,10 @@ package sqlite
 //	return sqlite3_bind_blob(stmt, col, p, n, SQLITE_TRANSIENT);
 // }
 //
+// static int static_bind_blob(sqlite3_stmt* stmt, int col, unsigned char* p, int n) {
+//	return sqlite3_bind_blob(stmt, col, p, n, SQLITE_STATIC);
+// }
+//
 // extern void log_fn(void* pArg, int code, char* msg);
 // static void enable_logging() {
 //	sqlite3_config(SQLITE_CONFIG_LOG, log_fn, NULL);
@@ -692,7 +696,8 @@ func (stmt *Stmt) step() (bool, error) {
 
 func (stmt *Stmt) handleBindErr(loc string, res C.int) {
 	if stmt.bindErr == nil {
-		stmt.bindErr = stmt.conn.reserr("Stmt."+loc, stmt.query, res)
+		stmt.bindErr = stmt.conn.reserr(loc, stmt.query, res)
+		// stmt.bindErr = stmt.conn.reserr("Stmt."+loc, stmt.query, res)
 	}
 }
 
@@ -805,6 +810,24 @@ func (stmt *Stmt) BindBytes(param int, value []byte) {
 	default:
 		v := (*C.uchar)(unsafe.Pointer(&value[0]))
 		res = C.transient_bind_blob(stmt.stmt, C.int(param), v, C.int(len(value)))
+		runtime.KeepAlive(value) // Ensure that value is not GC'd during the above C call.
+	}
+	stmt.handleBindErr("BindBytes", res)
+}
+
+func (stmt *Stmt) BindAliasedBytes(param int, value []byte) {
+	if stmt.stmt == nil {
+		return
+	}
+	var res C.int
+	switch {
+	case value == nil:
+		res = C.sqlite3_bind_null(stmt.stmt, C.int(param))
+	case len(value) == 0:
+		res = C.sqlite3_bind_zeroblob(stmt.stmt, C.int(param), C.int(0))
+	default:
+		v := (*C.uchar)(unsafe.Pointer(&value[0]))
+		res = C.static_bind_blob(stmt.stmt, C.int(param), v, C.int(len(value)))
 		runtime.KeepAlive(value) // Ensure that value is not GC'd during the above C call.
 	}
 	stmt.handleBindErr("BindBytes", res)
